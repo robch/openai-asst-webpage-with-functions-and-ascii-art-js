@@ -87,7 +87,10 @@ async function assistantProcessInput(userInput) {
 
     if (asHtml !== undefined) {
       newMessage.innerHTML = asHtml;
+
+      // Populate charts and SVGs now:
       populateNewChartsNow();
+      populateNewSvgsNow();
 
       if (atBottomBeforeUpdate) {
         chatPanelScrollToBottom();
@@ -97,6 +100,8 @@ async function assistantProcessInput(userInput) {
 
   newMessage.innerHTML = markdownToHtml(completeResponse) || completeResponse.replace(/\n/g, '<br/>');
   populateNewChartsNow();
+  populateNewSvgsNow();
+  populateNewAsciiArtFromSvgNow();
 
   chatPanel.scrollTop = chatPanel.scrollHeight;
 
@@ -104,7 +109,7 @@ async function assistantProcessInput(userInput) {
 }
 
 async function assistantCreateOrRetrieveThread(threadId = null) {
- 
+
   if (threadId === null) {
     await assistant.createThread()
   } else {
@@ -112,10 +117,11 @@ async function assistantCreateOrRetrieveThread(threadId = null) {
     await assistant.getThreadMessages((role, content) => {
       let html = markdownToHtml(content) || content.replace(/\n/g, '<br/>');
       role = role === 'user' ? 'user' : 'computer';
-      console.log(`role: ${role}, content: ${content}`);
       chatPanelAppendMessage(role, html);
     });
     populateNewChartsNow();
+    populateNewSvgsNow();
+    populateNewAsciiArtFromSvgNow();
   }
 }
 
@@ -216,18 +222,253 @@ function createNewChartJsChart(code) {
   return html;
 }
 
+let totalSVGs = 0;
+let svgsNotPopulated = [];
+function populateNewSvgLater(svgId, svgCode) {
+  svgsNotPopulated.push({ id: svgId, code: svgCode });
+}
+
+function populateNewSvgNow(svgItem) {
+  let elem = document.getElementById(svgItem.id);
+  if (elem) {
+    elem.innerHTML = svgItem.code;
+  }
+}
+
+function populateNewSvgsNow() {
+  svgsNotPopulated.forEach(svg => {
+    populateNewSvgNow(svg);
+  });
+  svgsNotPopulated = [];
+}
+
+function createNewSvgElement(code) {
+  const svgId = `svg-${totalSVGs}`;
+  const html = `<div id="${svgId}"></div>`;
+  populateNewSvgLater(svgId, code);
+  totalSVGs++;
+  return html;
+}
+
+let totalAsciiArtFromSvg = 0;
+let asciiArtFromSvgNotPopulated = [];
+
+function populateNewAsciiArtFromSvgLater(id, code) {
+  asciiArtFromSvgNotPopulated.push({ id: id, svgCode: code });
+}
+
+async function populateNewAsciiArtFromSvgNowItem(item) {
+  const finalCanvas = document.getElementById(item.id);
+  // const container = finalCanvas.parentElement;
+  if (!finalCanvas) {
+    console.warn(`[ASCII-ART] No finalCanvas found for id: ${item.id}`);
+    return;
+  }
+
+  console.log(`[ASCII-ART] Starting conversion for id: ${item.id}`);
+  console.log(`[ASCII-ART] SVG code length: ${item.svgCode.length}`);
+
+  // Create an offscreen container for the SVG
+  const offscreenDiv = document.createElement('div');
+  offscreenDiv.style.position = 'absolute';
+  offscreenDiv.style.left = '-9999px';
+  offscreenDiv.style.top = '-9999px';
+  offscreenDiv.style.width = '0';
+  offscreenDiv.style.height = '0';
+  offscreenDiv.style.overflow = 'hidden';
+  document.body.appendChild(offscreenDiv);
+
+  // Insert the SVG code
+  offscreenDiv.innerHTML = item.svgCode;
+
+  // Try to find the SVG element
+  const svgElement = offscreenDiv.querySelector('svg');
+  if (!svgElement) {
+    console.error(`[ASCII-ART] No <svg> element found in provided code for id: ${item.id}`);
+    document.body.removeChild(offscreenDiv);
+    return;
+  }
+
+  console.log(`[ASCII-ART] Found SVG element for id: ${item.id}`);
+
+  // Serialize the SVG
+  const serializer = new XMLSerializer();
+  const svgString = serializer.serializeToString(svgElement);
+  console.log(`[ASCII-ART] Serialized SVG length: ${svgString.length}`);
+
+  // Create a blob URL for the SVG
+  const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+  const svgUrl = URL.createObjectURL(svgBlob);
+
+  console.log(`[ASCII-ART] Created blob URL: ${svgUrl}`);
+
+  const img = new Image();
+
+  return new Promise((resolve) => {
+    img.onload = () => {
+      console.log(`[ASCII-ART] Image loaded successfully for id: ${item.id}`);
+      console.log(`[ASCII-ART] Natural size: ${img.naturalWidth}x${img.naturalHeight}`);
+
+      let width = img.naturalWidth;
+      let height = img.naturalHeight;
+
+      if (!width || !height) {
+        console.warn("[ASCII-ART] Image width/height is zero or undefined, cannot proceed.");
+        document.body.removeChild(offscreenDiv);
+        URL.revokeObjectURL(svgUrl);
+        resolve();
+        return;
+      }
+
+      // Draw the loaded image onto a hidden canvas to get pixel data
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = width;
+      tmpCanvas.height = height;
+      const tmpCtx = tmpCanvas.getContext('2d');
+      tmpCtx.drawImage(img, 0, 0);
+
+      // Get pixel data
+      const imageData = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
+      const data = imageData.data;
+
+      // ASCII mapping
+      const asciiMap = "@%#*+=-:. ";
+      const charsPerRow = tmpCanvas.width;
+      const rows = tmpCanvas.height;
+
+      console.log(`[ASCII-ART] Original image dimensions: ${charsPerRow}x${rows}`);
+
+      const finalCtx = finalCanvas.getContext('2d');
+      // Use a known monospace font
+      finalCtx.font = "10px 'Courier New', monospace";
+      
+      // Measure character dimensions
+      const metrics = finalCtx.measureText("M");
+      const charWidth = metrics.width;
+      const charHeight = (metrics.actualBoundingBoxAscent && metrics.actualBoundingBoxDescent) 
+        ? (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) 
+        : 10; // fallback if not supported
+
+      // Choose a single dimension for both width and height so they're square
+      const charDim = Math.max(charWidth, charHeight);
+
+      // Downsample factor
+      const scale = 700 / img.naturalWidth / charDim;
+      const sampleW = Math.max(1, Math.floor(charsPerRow * scale));
+      const sampleH = Math.max(1, Math.floor(rows * scale));
+
+      console.log(`[ASCII-ART] Downsample to: ${sampleW}x${sampleH} (scale ${scale})`);
+
+      let asciiLines = [];
+      for (let y = 0; y < sampleH; y++) {
+        let line = "";
+        for (let x = 0; x < sampleW; x++) {
+          let srcX = Math.floor(x / scale);
+          let srcY = Math.floor(y / scale);
+          let idx = (srcY * charsPerRow + srcX) * 4;
+          let r = data[idx];
+          let g = data[idx + 1];
+          let b = data[idx + 2];
+
+          if (r === undefined || g === undefined || b === undefined) {
+            console.warn(`[ASCII-ART] Out of bounds pixel at (${x},${y}) mapped to (${srcX},${srcY}). Using blank.`);
+            line += " ";
+            continue;
+          }
+
+          let gray = (r + g + b) / 3;
+          let charIndex = Math.floor((gray / 255) * (asciiMap.length - 1));
+          let char = asciiMap.charAt(charIndex);
+          line += char;
+        }
+        asciiLines.push(line);
+      }
+
+      console.log("[ASCII-ART] ASCII lines generated.");
+
+      finalCanvas.width = Math.ceil(sampleW * charDim);
+      finalCanvas.height = Math.ceil(sampleH * charDim);
+
+      console.log(`[ASCII-ART] Final canvas size: ${finalCanvas.width}x${finalCanvas.height}`);
+
+      // Set the container height to match the final canvas height, and hide the svg one
+      // container.style.height = `${finalCanvas.height}px`;
+      // container.querySelector('.svg').style.display = 'none';
+
+      // Black background
+      finalCtx.fillStyle = "#000";
+      finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+      // White text
+      finalCtx.fillStyle = "#FFF";
+      // Draw each character line at a uniform square dimension
+      for (let i = 0; i < asciiLines.length; i++) {
+        for (let j = 0; j < asciiLines[i].length; j++) {
+          finalCtx.fillText(asciiLines[i][j], j * charDim, i * charDim + charDim);
+        }
+      }
+
+      console.log("[ASCII-ART] ASCII art rendering complete.");
+
+      // Cleanup
+      document.body.removeChild(offscreenDiv);
+      URL.revokeObjectURL(svgUrl);
+      resolve();
+    };
+
+    img.onerror = (err) => {
+      console.error(`[ASCII-ART] Failed to load image for ASCII conversion:`, err);
+      document.body.removeChild(offscreenDiv);
+      URL.revokeObjectURL(svgUrl);
+      resolve();
+    };
+
+    console.log("[ASCII-ART] Setting img.src from blob URL and waiting for load event...");
+    img.src = svgUrl;
+  });
+}
+
+async function populateNewAsciiArtFromSvgNow() {
+  for (let item of asciiArtFromSvgNotPopulated) {
+    await populateNewAsciiArtFromSvgNowItem(item);
+  }
+  asciiArtFromSvgNotPopulated = [];
+}
+
+function createNewAsciiArtFromSvgElement(code) {
+  const asciiArtId = `ascii-art-${totalAsciiArtFromSvg}`;
+  const svgId = `svg-${totalSVGs}`;
+  // We'll render the ASCII art into this canvas later, overlapping the SVG
+  const html = `
+    <div class="ascii-art-from-svg-container">
+      <div id="${svgId}" class="svg"></div>
+      <canvas id="${asciiArtId}" class="ascii-art"></canvas>
+    </div>`;
+  populateNewSvgLater(svgId, code);
+  populateNewAsciiArtFromSvgLater(asciiArtId, code);
+  totalSVGs++;
+  totalAsciiArtFromSvg++;
+  return html;
+}
+
 function markdownInit() {
   marked.setOptions({
     highlight: function (code, lang) {
       if (lang === 'chartjs') {
         let chart = createNewChartJsChart(code);
         return `<div class="chartjs">${chart}</div>`;
+      } else if (lang === 'svg') {
+        let svgElement = createNewSvgElement(code);
+        return `<div class="svg">${svgElement}</div>`;
+      } else if (lang === 'ascii-art-from-svg') {
+        let asciiArtElement = createNewAsciiArtFromSvgElement(code);
+        return `<div class="ascii-art-from-svg">${asciiArtElement}</div>`;
+      } else {
+        let hl = lang === undefined || lang === ''
+          ? hljs.highlightAuto(code).value
+          : hljs.highlight(lang, code).value;
+        return `<div class="hljs">${hl}</div>`;
       }
-
-      let hl = lang === undefined || lang === ''
-        ? hljs.highlightAuto(code).value
-        : hljs.highlight(lang, code).value;
-      return `<div class="hljs">${hl}</div>`;
     }
   });
 }
@@ -498,7 +739,7 @@ async function threadItemsSetTitle(userInput, computerResponse, items, i) {
     model: AZURE_OPENAI_CHAT_DEPLOYMENT
   });
 
-var newTitle = completion.choices[i].message.content;
+  var newTitle = completion.choices[i].message.content;
   items[i].metadata = newTitle;
 
   localStorage.setItem('threadItems', JSON.stringify(items));

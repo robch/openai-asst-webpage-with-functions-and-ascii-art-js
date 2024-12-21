@@ -288,6 +288,25 @@ body.light-theme ::-webkit-scrollbar-thumb {
     background-color: rgba(217,217,227,var(--tw-bg-opacity))
 }
 
+/* .ascii-art-from-svg-container {
+    position: relative;
+    display: inline-block;
+} */
+
+/* .ascii-art-from-svg-container .svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.ascii-art-from-svg-container .ascii-art {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    pointer-events: none;
+} */
 
 .hljs {
     margin: 0px;
