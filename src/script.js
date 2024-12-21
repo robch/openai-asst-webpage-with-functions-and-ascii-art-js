@@ -268,24 +268,10 @@ async function populateNewAsciiArtFromSvgNowItem(item) {
   console.log(`[ASCII-ART] Starting conversion for id: ${item.id}`);
   console.log(`[ASCII-ART] SVG code length: ${item.svgCode.length}`);
 
-  // Create an offscreen container for the SVG
-  const offscreenDiv = document.createElement('div');
-  offscreenDiv.style.position = 'absolute';
-  offscreenDiv.style.left = '-9999px';
-  offscreenDiv.style.top = '-9999px';
-  offscreenDiv.style.width = '0';
-  offscreenDiv.style.height = '0';
-  offscreenDiv.style.overflow = 'hidden';
-  document.body.appendChild(offscreenDiv);
-
-  // Insert the SVG code
-  offscreenDiv.innerHTML = item.svgCode;
-
   // Try to find the SVG element
-  const svgElement = offscreenDiv.querySelector('svg');
+  const svgElement = finalCanvas.parentElement.querySelector('svg');
   if (!svgElement) {
     console.error(`[ASCII-ART] No <svg> element found in provided code for id: ${item.id}`);
-    document.body.removeChild(offscreenDiv);
     return;
   }
 
@@ -314,7 +300,6 @@ async function populateNewAsciiArtFromSvgNowItem(item) {
 
       if (!width || !height) {
         console.warn("[ASCII-ART] Image width/height is zero or undefined, cannot proceed.");
-        document.body.removeChild(offscreenDiv);
         URL.revokeObjectURL(svgUrl);
         resolve();
         return;
@@ -332,7 +317,7 @@ async function populateNewAsciiArtFromSvgNowItem(item) {
       const data = imageData.data;
 
       // ASCII mapping
-      const asciiMap = "@%#*+=-:. ";
+      const asciiMap = " .:-=+*#%@"; // const asciiMap = "@%#*+=-:. ";
       const charsPerRow = tmpCanvas.width;
       const rows = tmpCanvas.height;
 
@@ -371,7 +356,7 @@ async function populateNewAsciiArtFromSvgNowItem(item) {
           let b = data[idx + 2];
 
           if (r === undefined || g === undefined || b === undefined) {
-            console.warn(`[ASCII-ART] Out of bounds pixel at (${x},${y}) mapped to (${srcX},${srcY}). Using blank.`);
+            // console.warn(`[ASCII-ART] Out of bounds pixel at (${x},${y}) mapped to (${srcX},${srcY}). Using blank.`);
             line += " ";
             continue;
           }
@@ -382,6 +367,7 @@ async function populateNewAsciiArtFromSvgNowItem(item) {
           line += char;
         }
         asciiLines.push(line);
+        console.log(line);
       }
 
       console.log("[ASCII-ART] ASCII lines generated.");
@@ -411,14 +397,12 @@ async function populateNewAsciiArtFromSvgNowItem(item) {
       console.log("[ASCII-ART] ASCII art rendering complete.");
 
       // Cleanup
-      document.body.removeChild(offscreenDiv);
       URL.revokeObjectURL(svgUrl);
       resolve();
     };
 
     img.onerror = (err) => {
       console.error(`[ASCII-ART] Failed to load image for ASCII conversion:`, err);
-      document.body.removeChild(offscreenDiv);
       URL.revokeObjectURL(svgUrl);
       resolve();
     };
@@ -440,10 +424,9 @@ function createNewAsciiArtFromSvgElement(code) {
   const svgId = `svg-${totalSVGs}`;
   // We'll render the ASCII art into this canvas later, overlapping the SVG
   const html = `
-    <div class="ascii-art-from-svg-container">
       <div id="${svgId}" class="svg"></div>
-      <canvas id="${asciiArtId}" class="ascii-art"></canvas>
-    </div>`;
+      <canvas id="${asciiArtId}" class="ascii-art"></canvas>    
+      `;
   populateNewSvgLater(svgId, code);
   populateNewAsciiArtFromSvgLater(asciiArtId, code);
   totalSVGs++;
