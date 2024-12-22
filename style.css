@@ -291,25 +291,22 @@ body.light-theme ::-webkit-scrollbar-thumb {
 .ascii-art {
     display: block;
 }
-/* .ascii-art-from-svg-container {
-    position: relative;
-    display: inline-block;
-} */
 
-/* .ascii-art-from-svg-container .svg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
+button.thread {
+  width: 100%;
+  position: relative;
+}
+  
+button.thread .trash-icon {
+  display: none;
+  position: absolute;
+  right: 10px;
+  top: 10px;
 }
 
-.ascii-art-from-svg-container .ascii-art {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 2;
-    pointer-events: none;
-} */
+button.thread:hover .trash-icon {
+  display: block;
+}
 
 .hljs {
     margin: 0px;

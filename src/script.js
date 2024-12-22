@@ -586,6 +586,15 @@ function threadItemsAddNew(items, newItem) {
   threadPanelPopulate(items);
 }
 
+function threadItemsDelete(items, id) {
+  let index = items.findIndex(item => item.id === id);
+  if (index !== -1) {
+    items.splice(index, 1);
+    localStorage.setItem('threadItems', JSON.stringify(items));
+    threadPanelPopulate(items);
+  }
+}
+
 function threadItemsGet() {
   const threadItemsString = localStorage.getItem('threadItems');
   if (threadItemsString) {
@@ -761,9 +770,17 @@ function threadPanelPopulate(items) {
       const icon = document.createElement('i');
       icon.classList.add('threadIcon', 'fa', 'fa-comment');
 
+      const trashIcon = document.createElement('i');
+      trashIcon.classList.add('trash-icon', 'fa', 'fa-trash');
+      trashIcon.onclick = function(event) {
+        event.stopPropagation();
+        threadItemsDelete(threadItemsGet(), item.id);
+      };
+
       div.appendChild(icon);
       div.appendChild(document.createTextNode(item.metadata));
       button.appendChild(div);
+      button.appendChild(trashIcon);
       threadsContainer.appendChild(button);
     });
   }
