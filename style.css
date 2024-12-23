@@ -296,16 +296,34 @@ button.thread {
   width: 100%;
   position: relative;
 }
-  
+
 button.thread .trash-icon {
   display: none;
   position: absolute;
-  right: 10px;
-  top: 10px;
+  left: 6px;
+  top: 12px;
 }
 
 button.thread:hover .trash-icon {
   display: block;
+}
+
+button.thread .thread-title {
+    display: inline-block;
+    max-width: calc(100% - 10px);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    position: relative;
+}
+
+button.thread .thread-title::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 10px;
 }
 
 .hljs {

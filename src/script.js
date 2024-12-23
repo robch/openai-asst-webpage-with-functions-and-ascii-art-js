@@ -767,6 +767,8 @@ function threadPanelPopulate(items) {
       };
 
       const div = document.createElement('div');
+      div.classList.add('thread-title');
+
       const icon = document.createElement('i');
       icon.classList.add('threadIcon', 'fa', 'fa-comment');
 
