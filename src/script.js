@@ -649,6 +649,8 @@ function threadItemsGroupByDate(threadItems) {
 
 async function threadItemsSetTitleIfUntitled(items, userInput, computerResponse) {
   if (threadItemIsUntitled(items[0])) {
+    window.location.hash = items[0].id;
+    userInputTextAreaFocus();
     await threadItemsSetTitle(userInput, computerResponse, items, 0);
   }
 }
@@ -838,6 +840,7 @@ function varsUpdateHeightsAndWidths() {
 }
 
 async function newChat() {
+  window.location.hash = '';
   chatPanelClear();
   logoShow();
   userInputTextAreaFocus();
@@ -845,6 +848,7 @@ async function newChat() {
 }
 
 async function loadThread(threadId) {
+  window.location.hash = threadId;
   chatPanelClear();
   await assistantCreateOrRetrieveThread(threadId);
   userInputTextAreaFocus();
@@ -873,8 +877,11 @@ async function init() {
   userInputTextAreaInit();
   varsInit();
 
+  const threadIdFromAnchor = window.location.hash.substring(1);
+  const threadId = urlParams.get('thread') || threadIdFromAnchor;
+
   let items;
-  await assistantInit();
+  await assistantInit(threadId);
 
   const fake = urlParams.get('fake') === 'true';
   if (fake) {
