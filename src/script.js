@@ -110,7 +110,8 @@ async function assistantProcessInput(userInput) {
 
 async function assistantCreateOrRetrieveThread(threadId = null) {
 
-  if (threadId === null) {
+  const threadIdOk = threadId != null && threadId.length > 5;
+  if (!threadIdOk) {
     await assistant.createThread()
   } else {
     await assistant.retrieveThread(threadId);
@@ -532,6 +533,16 @@ function toggleThemeButtonHandleKeyDown() {
   };
 }
 
+function threadIdInAddressClear() {
+  window.location.hash = '';
+  document.title = 'New Chat';
+}
+
+function threadIdInAddressSet(id, newTitle) {
+  window.location.hash = id;
+  document.title = newTitle;
+}
+
 const titleUntitled = 'Untitled';
 
 function ThreadItem(id, created, metadata) {
@@ -649,9 +660,9 @@ function threadItemsGroupByDate(threadItems) {
 
 async function threadItemsSetTitleIfUntitled(items, userInput, computerResponse) {
   if (threadItemIsUntitled(items[0])) {
-    window.location.hash = items[0].id;
-    userInputTextAreaFocus();
     await threadItemsSetTitle(userInput, computerResponse, items, 0);
+    threadIdInAddressSet(items[0].id, items[0].metadata);
+    userInputTextAreaFocus();
   }
 }
 
@@ -738,6 +749,8 @@ async function threadItemsSetTitle(userInput, computerResponse, items, i) {
 
   localStorage.setItem('threadItems', JSON.stringify(items));
   threadPanelPopulate(items);
+
+  return newTitle;
 }
 
 function threadPanelPopulate(items) {
@@ -765,7 +778,8 @@ function threadPanelPopulate(items) {
       button.id = item.id;
       button.classList.add('thread', 'w3-button');
       button.onclick = function() {
-        loadThread(this.id);
+        loadThread(item.id);
+        threadIdInAddressSet(item.id, item.metadata);
       };
 
       const div = document.createElement('div');
@@ -840,7 +854,7 @@ function varsUpdateHeightsAndWidths() {
 }
 
 async function newChat() {
-  window.location.hash = '';
+  threadIdInAddressClear();
   chatPanelClear();
   logoShow();
   userInputTextAreaFocus();
@@ -848,7 +862,6 @@ async function newChat() {
 }
 
 async function loadThread(threadId) {
-  window.location.hash = threadId;
   chatPanelClear();
   await assistantCreateOrRetrieveThread(threadId);
   userInputTextAreaFocus();

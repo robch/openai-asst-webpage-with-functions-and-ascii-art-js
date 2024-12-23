@@ -290,6 +290,7 @@ body.light-theme ::-webkit-scrollbar-thumb {
 
 .ascii-art {
     display: block;
+    max-width: 100%;
 }
 
 button.thread {
