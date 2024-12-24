@@ -14,16 +14,16 @@ function threadItemIsUntitled(item) {
   return item.metadata === titleUntitled;
 }
 
-async function threadItemsCheckIfUpdatesNeeded(userInput, computerResponse) {
+async function threadItemsCheckIfUpdatesNeeded(userInput, computerResponse, currentThreadId) {
   let items = threadItemsGet();
-  threadItemsCheckMoveOrAdd(items);
+  threadItemsCheckMoveOrAdd(items, currentThreadId);
 
   await threadItemsSetTitleIfUntitled(items, userInput, computerResponse);
 }
 
-function threadItemsCheckMoveOrAdd(items) {
-  threadItemsCheckMoveTop(items, assistant.thread.id);
-  threadItemsCheckAddNew(items, assistant.thread.id);
+function threadItemsCheckMoveOrAdd(items, currentThreadId) {
+  threadItemsCheckMoveTop(items, currentThreadId);
+  threadItemsCheckAddNew(items, currentThreadId);
 }
 
 function threadItemsCheckMoveTop(items, threadId) {
@@ -107,7 +107,6 @@ async function threadItemsSetTitleIfUntitled(items, userInput, computerResponse)
   if (threadItemIsUntitled(items[0])) {
     await threadItemsSetTitle(userInput, computerResponse, items, 0);
     threadIdInAddressSet(items[0].id, items[0].metadata);
-    userInputTextAreaFocus();
   }
 }
 
@@ -198,4 +197,65 @@ async function threadItemsSetTitle(userInput, computerResponse, items, i) {
   return newTitle;
 }
 
-export { threadItemsCheckIfUpdatesNeeded, threadItemsDelete, threadItemsGet, threadItemsGetGroupName, threadItemsGroupByDate, threadItemsSetTitle };
+function threadPanelPopulate(items) {
+
+  // Clear existing content
+  const threadPanel = document.getElementById('threadPanel');
+  threadPanel.innerHTML = '';
+
+  // Group thread items by date
+  const groupedThreadItems = threadItemsGroupByDate(items);
+
+  // Iterate over grouped items and populate thread panel
+  for (const [date, items] of groupedThreadItems) {
+    const dateHeader = document.createElement('div');
+    dateHeader.classList.add('threadOnDate');
+    dateHeader.textContent = date;
+    threadPanel.appendChild(dateHeader);
+
+    const threadsContainer = document.createElement('div');
+    threadsContainer.id = 'threads';
+    threadPanel.appendChild(threadsContainer);
+
+    items.forEach(item => {
+      const button = document.createElement('button');
+      button.id = item.id;
+      button.classList.add('thread', 'w3-button');
+      button.onclick = function() {
+        loadThread(item.id);
+        threadIdInAddressSet(item.id, item.metadata);
+      };
+
+      const div = document.createElement('div');
+      div.classList.add('thread-title');
+
+      const icon = document.createElement('i');
+      icon.classList.add('threadIcon', 'fa', 'fa-comment');
+
+      const trashIcon = document.createElement('i');
+      trashIcon.classList.add('trash-icon', 'fa', 'fa-trash');
+      trashIcon.onclick = function(event) {
+        event.stopPropagation();
+        threadItemsDelete(threadItemsGet(), item.id);
+      };
+
+      div.appendChild(icon);
+      div.appendChild(document.createTextNode(item.metadata));
+      button.appendChild(div);
+      button.appendChild(trashIcon);
+      threadsContainer.appendChild(button);
+    });
+  }
+}
+
+function threadIdInAddressClear() {
+  window.location.hash = '';
+  document.title = 'New Chat';
+}
+
+function threadIdInAddressSet(id, newTitle) {
+  window.location.hash = id;
+  document.title = newTitle;
+}
+
+export { threadItemsCheckIfUpdatesNeeded, threadItemsDelete, threadItemsGet, threadItemsGetGroupName, threadItemsGroupByDate, threadItemsSetTitle, threadPanelPopulate, threadIdInAddressClear, threadIdInAddressSet };

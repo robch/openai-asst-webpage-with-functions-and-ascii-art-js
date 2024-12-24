@@ -9,7 +9,7 @@ import { populateNewSvgsNow, populateNewAsciiArtFromSvgNow } from './markdown-sv
 import { chatPanelAppendMessage, chatPanelIsScrollAtBottom, chatPanelScrollToBottom, chatPanelClear } from './chat-panel-helpers';
 import { logoShow } from './logo-helpers';
 import { themeInit, toggleTheme } from './theme-helpers';
-import { threadItemsCheckIfUpdatesNeeded, threadItemsDelete, threadItemsGet, threadItemsGroupByDate } from './thread-item-helpers';
+import { threadItemsCheckIfUpdatesNeeded, threadItemsGet, threadPanelPopulate, threadIdInAddressClear } from './thread-item-helpers';
 
 let assistant;
 async function assistantInit(threadId = null) {
@@ -112,7 +112,8 @@ async function assistantProcessInput(userInput) {
 
   chatPanel.scrollTop = chatPanel.scrollHeight;
 
-  await threadItemsCheckIfUpdatesNeeded(userInput, completeResponse);
+  await threadItemsCheckIfUpdatesNeeded(userInput, completeResponse, assistant.thread.id);
+  userInputTextAreaFocus();
 }
 
 async function assistantCreateOrRetrieveThread(threadId = null) {
@@ -130,67 +131,6 @@ async function assistantCreateOrRetrieveThread(threadId = null) {
     populateNewChartsNow();
     populateNewSvgsNow();
     populateNewAsciiArtFromSvgNow();
-  }
-}
-
-function threadIdInAddressClear() {
-  window.location.hash = '';
-  document.title = 'New Chat';
-}
-
-function threadIdInAddressSet(id, newTitle) {
-  window.location.hash = id;
-  document.title = newTitle;
-}
-
-function threadPanelPopulate(items) {
-
-  // Clear existing content
-  const threadPanel = document.getElementById('threadPanel');
-  threadPanel.innerHTML = '';
-
-  // Group thread items by date
-  const groupedThreadItems = threadItemsGroupByDate(items);
-
-  // Iterate over grouped items and populate thread panel
-  for (const [date, items] of groupedThreadItems) {
-    const dateHeader = document.createElement('div');
-    dateHeader.classList.add('threadOnDate');
-    dateHeader.textContent = date;
-    threadPanel.appendChild(dateHeader);
-
-    const threadsContainer = document.createElement('div');
-    threadsContainer.id = 'threads';
-    threadPanel.appendChild(threadsContainer);
-
-    items.forEach(item => {
-      const button = document.createElement('button');
-      button.id = item.id;
-      button.classList.add('thread', 'w3-button');
-      button.onclick = function() {
-        loadThread(item.id);
-        threadIdInAddressSet(item.id, item.metadata);
-      };
-
-      const div = document.createElement('div');
-      div.classList.add('thread-title');
-
-      const icon = document.createElement('i');
-      icon.classList.add('threadIcon', 'fa', 'fa-comment');
-
-      const trashIcon = document.createElement('i');
-      trashIcon.classList.add('trash-icon', 'fa', 'fa-trash');
-      trashIcon.onclick = function(event) {
-        event.stopPropagation();
-        threadItemsDelete(threadItemsGet(), item.id);
-      };
-
-      div.appendChild(icon);
-      div.appendChild(document.createTextNode(item.metadata));
-      button.appendChild(div);
-      button.appendChild(trashIcon);
-      threadsContainer.appendChild(button);
-    });
   }
 }
 
