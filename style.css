@@ -16,10 +16,10 @@ body {
     color: #f2f2f2;
     font-size: medium;
     font-family: system-ui;
-    height: 100vh;
     margin: 0px;
-    overflow: hidden;
-    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 #header {
@@ -70,30 +70,42 @@ body.light-theme #header {
 }
 
 #rightSide {
+    margin: 0 auto;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
     max-width: var(--right-side-max-width);
+
+    overflow: hidden;
+    position: relative;
+
 }
 
 #rightSideInside {
     margin-left: auto;
     margin-right: auto;
     max-width: var(--right-side-max-width);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 #toggleThemeButton {
     position: fixed;
     top: 10px;
-    right: 0px;
+    right: 10px;
     cursor: pointer;
     color: #fff;
+    z-index: 20;
+    background: inherit;
 }
 
+
 #chatPanel {
-    height: 100%;
-    max-height: calc(100vh - var(--header-height) - var(--input-height) - 32px);
+    flex: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(var(--input-height) + 2rem);
 }
 
 #sendButton {
@@ -107,8 +119,21 @@ body.light-theme #header {
 }
 
 #userInputPanel {
+    position: fixed;
+    background-color: #111;
+    padding: 1rem !important;
+    padding-bottom: 2rem !important;
+    margin-bottom: 0px !important;
+    width: 100%;
+    max-width: var(--right-side-max-width);
+    z-index: 10;
     display: flex;
-    max-width: 768px;
+    /* box-shadow: 0 -20px 20px -10px #111; Add shadow fade for smooth transition */
+}
+
+body.light-theme #userInputPanel {
+    background-color: #fff;
+    box-shadow: 0 -20px 20px -10px #fff;
 }
 
 #userInput {
@@ -243,6 +268,7 @@ body.light-theme .computer {
 #userInput::-webkit-scrollbar {
     display: none;
 }
+
 #userInput {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -294,19 +320,19 @@ body.light-theme ::-webkit-scrollbar-thumb {
 }
 
 button.thread {
-  width: 100%;
-  position: relative;
+    width: 100%;
+    position: relative;
 }
 
 button.thread .trash-icon {
-  display: none;
-  position: absolute;
-  left: 6px;
-  top: 12px;
+    display: none;
+    position: absolute;
+    left: 6px;
+    top: 12px;
 }
 
 button.thread:hover .trash-icon {
-  display: block;
+    display: block;
 }
 
 button.thread .thread-title {
@@ -359,74 +385,74 @@ hue-6-2: #e6c07b
 .hljs {
     color: #abb2bf;
     background: #282c34;
-  }
-  
-  .hljs-comment,
-  .hljs-quote {
+}
+
+.hljs-comment,
+.hljs-quote {
     color: #5c6370;
     font-style: italic;
-  }
-  
-  .hljs-doctag,
-  .hljs-keyword,
-  .hljs-formula {
+}
+
+.hljs-doctag,
+.hljs-keyword,
+.hljs-formula {
     color: #c678dd;
-  }
-  
-  .hljs-section,
-  .hljs-name,
-  .hljs-selector-tag,
-  .hljs-deletion,
-  .hljs-subst {
+}
+
+.hljs-section,
+.hljs-name,
+.hljs-selector-tag,
+.hljs-deletion,
+.hljs-subst {
     color: #e06c75;
-  }
-  
-  .hljs-literal {
+}
+
+.hljs-literal {
     color: #56b6c2;
-  }
-  
-  .hljs-string,
-  .hljs-regexp,
-  .hljs-addition,
-  .hljs-attribute,
-  .hljs-meta .hljs-string {
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string {
     color: #98c379;
-  }
-  
-  .hljs-attr,
-  .hljs-variable,
-  .hljs-template-variable,
-  .hljs-type,
-  .hljs-selector-class,
-  .hljs-selector-attr,
-  .hljs-selector-pseudo,
-  .hljs-number {
+}
+
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-number {
     color: #d19a66;
-  }
-  
-  .hljs-symbol,
-  .hljs-bullet,
-  .hljs-link,
-  .hljs-meta,
-  .hljs-selector-id,
-  .hljs-title {
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-id,
+.hljs-title {
     color: #61aeee;
-  }
-  
-  .hljs-built_in,
-  .hljs-title.class_,
-  .hljs-class .hljs-title {
+}
+
+.hljs-built_in,
+.hljs-title.class_,
+.hljs-class .hljs-title {
     color: #e6c07b;
-  }
-  
-  .hljs-emphasis {
+}
+
+.hljs-emphasis {
     font-style: italic;
-  }
-  
-  .hljs-strong {
+}
+
+.hljs-strong {
     font-weight: bold;
-  }
-  
-  .hljs-link {
+}
+
+.hljs-link {
     text-decoration: underline;
-  }
+}
