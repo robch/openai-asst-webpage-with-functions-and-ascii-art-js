@@ -224,6 +224,7 @@ function threadPanelPopulate(items) {
       button.onclick = function() {
         loadThread(item.id);
         threadIdInAddressSet(item.id, item.metadata);
+        window.hideLeftSide();
       };
 
       const div = document.createElement('div');

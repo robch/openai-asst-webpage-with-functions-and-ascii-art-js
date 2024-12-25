@@ -16,7 +16,14 @@
       <i class="fa fa-toggle-on"></i>
     </div>
 
-    <div id="leftSide" class="w3-cell w3-center w3-hide-small w3-hide-medium">
+    <div id="hamburgerButton" class="w3-container w3-hide-large" onclick="toggleLeftSide()">
+      <i class="fa fa-angle-double-right"></i>
+    </div>
+
+    <div id="leftSide" class="w3-cell w3-center">
+      <div id="closeButton" class="w3-container w3-hide-large" onclick="toggleLeftSide()">
+        <i class="fa fa-angle-double-left"></i>
+      </div>
       <button id="newChatButton" class="w3-button w3-center" onclick="newChat()">
         <div class="w3-left w3-medium"><img id="logoIcon" src="./ai.png" alt="Logo"> New chat</div>
         <div class="w3-right"><i class="fa fa-edit"></i></div>

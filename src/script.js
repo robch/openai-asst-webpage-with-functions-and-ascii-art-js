@@ -185,6 +185,7 @@ function varsUpdateHeightsAndWidths() {
 
 async function newChat() {
   threadIdInAddressClear();
+  hideLeftSide();
   chatPanelClear();
   logoShow();
   userInputTextAreaFocus();
@@ -208,6 +209,29 @@ function sendMessage() {
     userInputTextAreaClear();
     varsUpdateHeightsAndWidths();
     assistantProcessInput(inputValue);
+  }
+}
+
+function hideLeftSide() {
+  const leftSide = document.getElementById('leftSide');
+  leftSide.classList.remove('show');
+  const closeButton = document.getElementById('closeButton');
+  const hamburgerButton = document.getElementById('hamburgerButton');
+  closeButton.style.display = 'none';
+  hamburgerButton.style.display = 'block';
+}
+
+function toggleLeftSide() {
+  const leftSide = document.getElementById('leftSide');
+  leftSide.classList.toggle('show');
+  const closeButton = document.getElementById('closeButton');
+  const hamburgerButton = document.getElementById('hamburgerButton');
+  if (leftSide.classList.contains('show')) {
+    closeButton.style.display = 'block';
+    hamburgerButton.style.display = 'none';
+  } else {
+    closeButton.style.display = 'none';
+    hamburgerButton.style.display = 'block';
   }
 }
 
@@ -241,6 +265,8 @@ async function init() {
   window.loadThread = loadThread;
   window.sendMessage = sendMessage;
   window.toggleTheme = toggleTheme;
+  window.toggleLeftSide = toggleLeftSide;
+  window.hideLeftSide = hideLeftSide;
 }
 
 init();

@@ -56,6 +56,7 @@ body.light-theme #header {
     height: 100vh;
     max-height: 100vh;
     overflow-y: auto;
+    transition: transform 0.3s ease;
 }
 
 #newChatButton {
@@ -455,4 +456,81 @@ hue-6-2: #e6c07b
 
 .hljs-link {
     text-decoration: underline;
+}
+
+#hamburgerButton {
+    display: none;
+    cursor: pointer;
+    font-size: 24px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 20;
+}
+
+#leftSide {
+    transition: transform 0.3s ease;
+}
+
+#closeButton {
+    display: none;
+    cursor: pointer;
+    font-size: 24px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 20;
+}
+
+#leftSide.show #closeButton {
+    display: block;
+}
+
+@media (max-width: 1048px) {
+    #hamburgerButton {
+        display: block;
+    }
+
+    #leftSide {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100%;
+        background-color: #111; /* Dark background */
+        transform: translateX(-100%);
+        z-index: 1000;
+        overflow-y: auto;
+    }
+
+    #leftSide.show {
+        transform: translateX(0);
+    }
+
+    #leftSide.show #closeButton {
+        display: block;
+    }
+
+    #leftSide.show #hamburgerButton {
+        display: none;
+    }
+}
+
+#leftSide::-webkit-scrollbar {
+    height: 1rem;
+    width: .5rem;
+}
+
+#leftSide::-webkit-scrollbar-track {
+    background-color: transparent;
+    border-radius: 9999px;
+}
+
+#leftSide::-webkit-scrollbar-thumb {
+    background-color: #0a0a0a;
+    border-radius: 9999px;
+}
+
+body.light-theme #leftSide::-webkit-scrollbar-thumb {
+    background-color: #fafafa;
 }
